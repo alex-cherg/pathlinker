@@ -3,6 +3,7 @@
 import os
 import shutil
 import json
+import argparse
 
 # Helper functions
 def prompt_yes_no(msg, automatic_yes=False, ask_twice=False):
@@ -109,11 +110,26 @@ def pathlink(settings_path, mode='link', execute_linking=True, automatic_yes=Fal
     elif mode == 'unlink':
         pathlink_unlink(original_dir, destination_dir, tracked_paths, execute_linking, automatic_yes)
 
-    
-            
-
 
 if __name__ == "__main__":
-    PATHLINKER_JSON = os.path.join(os.path.expanduser('~'), '.pathlinker.json')
-    pathlink(PATHLINKER_JSON)
+
+    # Parse script arguments
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-m', '--mode', type=str, default='link', choices=['link', 'unlink'],
+        help='chooses mode for execution: link (add symbolic links), unlink (remove symbolic links)')
+    parser.add_argument('-d', '--dry-run', action='store_true',
+        help='just print info without any action')
+    parser.add_argument('--id', type=str, default='*',
+        help='specifies which folders from config to link (default: * (all ids))')
+    # default settings json file
+    SETTINGS_JSON = os.path.join(os.path.expanduser('~'), '.pathlinker.json')
+    parser.add_argument('-s', '--settings-json', type=str, default=SETTINGS_JSON,
+        help='specifies file with settings (default: ~/.pathlinker.json)')
+
+    args = parser.parse_args()
+
+    assert os.path.isfile(args.settings_json), '--settings-file should be a proper file'
+
+    pathlink(args.settings_json, mode=args.mode, execute_linking=not args.dry_run)
 
