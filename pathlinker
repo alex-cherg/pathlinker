@@ -20,29 +20,14 @@ def prompt_yes_no(msg, automatic_yes=False, ask_twice=False):
         else:
             return input(msg + " [yY/nN]: ") in YES_ANSWERS
 
-def pathlink(settings_path, execute_linking=True, automatic_yes=False):
-
-    assert type(execute_linking) is bool
-    assert type(automatic_yes) is bool
-
-    with open(settings_path, 'r') as f:
-        settings = json.load(f)
-
-    tracked_paths = settings['tracked_paths']
-    original_dir = settings['original_dir']
-    destination_dir = settings['destination_dir']
-
-    assert type(tracked_paths) is list, "tracked_paths is not a list"
-    assert tracked_paths, "tracked_paths is empty"
-    assert isinstance(original_dir, str) and os.path.isdir(original_dir), "original_dir is not a directory"
-    assert isinstance(destination_dir, str) and os.path.isdir(destination_dir), "destination_dir is not a directory"
+def pathlink_link(original_dir, destination_dir, tracked_paths, execute_linking, automatic_yes):
 
     for tracked_path in tracked_paths:
 
         original_path = os.path.join(original_dir, tracked_path)
         destination_path = os.path.join(destination_dir, tracked_path)
 
-        print(f"### Processing dir {destination_path} ###")
+        print(f"### Processing dir {tracked_path} ###")
 
         if os.path.exists(destination_path):
             if not os.path.exists(original_path) and not os.path.islink(original_path):
@@ -80,6 +65,51 @@ def pathlink(settings_path, execute_linking=True, automatic_yes=False):
                     os.symlink(destination_path, original_path)
                 else:
                     print("Ok. DIY")
+
+def pathlink_unlink(original_dir, destination_dir, tracked_paths, execute_linking, automatic_yes):
+
+    for tracked_path in tracked_paths:
+
+        original_path = os.path.join(original_dir, tracked_path)
+        destination_path = os.path.join(destination_dir, tracked_path)
+
+        print(f"### Processing dir {tracked_path} ###")
+
+        if (os.path.islink(original_path) 
+            and os.readlink(original_path) == destination_path
+            and os.path.exists(destination_path)):
+            if execute_linking and prompt_yes_no("Do you want to remove the link?", automatic_yes=automatic_yes):
+                os.unlink(original_path)
+                shutil.move(destination_path, original_path)
+        else:
+            print('Not a proper link. DIY')
+
+
+def pathlink(settings_path, mode='link', execute_linking=True, automatic_yes=False):
+
+    assert type(execute_linking) is bool
+    assert type(automatic_yes) is bool
+    assert type(mode) is str
+
+    with open(settings_path, 'r') as f:
+        settings = json.load(f)
+
+    tracked_paths = settings['tracked_paths']
+    original_dir = settings['original_dir']
+    destination_dir = settings['destination_dir']
+
+    assert type(tracked_paths) is list, "tracked_paths is not a list"
+    assert tracked_paths, "tracked_paths is empty"
+    assert isinstance(original_dir, str) and os.path.isdir(original_dir), "original_dir is not a directory"
+    assert isinstance(destination_dir, str) and os.path.isdir(destination_dir), "destination_dir is not a directory"
+    assert mode == 'link' or mode == 'unlink', f'invalid mode: {mode}'
+
+    if mode == 'link':
+        pathlink_link(original_dir, destination_dir, tracked_paths, execute_linking, automatic_yes)
+    elif mode == 'unlink':
+        pathlink_unlink(original_dir, destination_dir, tracked_paths, execute_linking, automatic_yes)
+
+    
             
 
 

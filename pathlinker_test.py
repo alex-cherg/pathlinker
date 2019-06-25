@@ -16,11 +16,12 @@ def test_result_everything_possible_linked(original_dir_test, destination_dir_te
         tracked_path_backup = os.path.join(destination_dir_test, tracked_path)
 
         try:
-            if (tracked_path == 'TEST_NO_YES' 
-                    or tracked_path == 'TEST_SYM_RIGHT_YES'
-                    or tracked_path == 'TEST_SYM_WRONG_YES'
-                    or tracked_path == 'TEST_DIR_YES'
-                    or tracked_path == 'TEST_FILE_YES'
+            if (tracked_path == 'TEST_NO_FILE' 
+                    or tracked_path == 'TEST_SYM_RIGHT_FILE'
+                    or tracked_path == 'TEST_SYM_RIGHT_DIR'
+                    or tracked_path == 'TEST_SYM_WRONG_FILE'
+                    or tracked_path == 'TEST_DIR_FILE'
+                    or tracked_path == 'TEST_FILE_FILE'
                     or tracked_path == 'TEST_DIR_NO'
                     or tracked_path == 'TEST_FILE_NO'):
                 assert (os.path.islink(tracked_path_home))
@@ -52,21 +53,78 @@ def test_result_nothing_gets_changed(original_dir_test, destination_dir_test, tr
         tracked_path_backup = os.path.join(destination_dir_test, tracked_path)
 
         try:
-            if tracked_path == 'TEST_NO_YES':
+            if tracked_path == 'TEST_NO_FILE':
                 assert (not os.path.exists(tracked_path_home))
                 assert (os.path.exists(tracked_path_backup))
-            elif tracked_path == 'TEST_SYM_RIGHT_YES':
+            elif (tracked_path == 'TEST_SYM_RIGHT_FILE'
+                    or tracked_path == 'TEST_SYM_RIGHT_DIR'):
                 assert (os.path.islink(tracked_path_home))
                 assert (os.readlink(tracked_path_home) == tracked_path_backup)
                 assert (os.path.exists(tracked_path_backup))
-            elif tracked_path == 'TEST_SYM_WRONG_YES':
+            elif tracked_path == 'TEST_SYM_WRONG_FILE':
                 assert (os.path.islink(tracked_path_home))
                 assert (not os.readlink(tracked_path_home) == tracked_path_backup)
                 assert (os.path.exists(tracked_path_backup))
-            elif tracked_path == 'TEST_DIR_YES':
+            elif tracked_path == 'TEST_DIR_FILE':
                 assert (os.path.isdir(tracked_path_home))
                 assert (os.path.exists(tracked_path_backup))
-            elif tracked_path == 'TEST_FILE_YES':
+            elif tracked_path == 'TEST_FILE_FILE':
+                assert (os.path.isfile(tracked_path_home))
+                assert (os.path.exists(tracked_path_backup))
+            elif tracked_path == 'TEST_NO_NO':
+                assert (not os.path.exists(tracked_path_home))
+                assert (not os.path.islink(tracked_path_home))
+                assert (not os.path.exists(tracked_path_backup))
+                assert (not os.path.islink(tracked_path_backup))
+            elif tracked_path == 'TEST_SYM_NO':
+                assert (os.path.islink(tracked_path_home))
+                assert (not os.path.exists(tracked_path_backup))
+                assert (not os.path.islink(tracked_path_backup))
+            elif tracked_path == 'TEST_DIR_NO':
+                assert (os.path.isdir(tracked_path_home))
+                assert (not os.path.exists(tracked_path_backup))
+                assert (not os.path.islink(tracked_path_backup))
+            elif tracked_path == 'TEST_FILE_NO':
+                assert (os.path.isfile(tracked_path_home))
+                assert (not os.path.exists(tracked_path_backup))
+                assert (not os.path.islink(tracked_path_backup))
+            else:
+                raise Exception('Unknown test tracked path!')
+            
+            print(f'Test passed: {tracked_path}')
+
+        except AssertionError as error:
+            print(f'Test failed: {tracked_path}')
+            print(error)
+
+def test_result_unlink(original_dir_test, destination_dir_test, tracked_paths):
+
+    for tracked_path in tracked_paths:
+
+        tracked_path_home = os.path.join(original_dir_test, tracked_path)
+        tracked_path_backup = os.path.join(destination_dir_test, tracked_path)
+
+        try:
+            if tracked_path == 'TEST_NO_FILE':
+                assert (not os.path.exists(tracked_path_home))
+                assert (os.path.exists(tracked_path_backup))
+            elif tracked_path == 'TEST_SYM_RIGHT_FILE':
+                assert (os.path.isfile(tracked_path_home))
+                assert (not os.path.exists(tracked_path_backup))
+                assert (not os.path.islink(tracked_path_backup))
+            elif tracked_path == 'TEST_SYM_RIGHT_DIR':
+                assert (os.path.isdir(tracked_path_home))
+                assert (not os.path.exists(tracked_path_backup))
+                assert (not os.path.islink(tracked_path_backup))
+                # pass
+            elif tracked_path == 'TEST_SYM_WRONG_FILE':
+                assert (os.path.islink(tracked_path_home))
+                assert (not os.readlink(tracked_path_home) == tracked_path_backup)
+                assert (os.path.exists(tracked_path_backup))
+            elif tracked_path == 'TEST_DIR_FILE':
+                assert (os.path.isdir(tracked_path_home))
+                assert (os.path.exists(tracked_path_backup))
+            elif tracked_path == 'TEST_FILE_FILE':
                 assert (os.path.isfile(tracked_path_home))
                 assert (os.path.exists(tracked_path_backup))
             elif tracked_path == 'TEST_NO_NO':
@@ -110,11 +168,12 @@ def test_pathlinker(test_name, run_script_lambda, test_result_function):
 
     # Test files
     TRACKED_PATHS = [
-        'TEST_NO_YES',
-        'TEST_SYM_RIGHT_YES',
-        'TEST_SYM_WRONG_YES',
-        'TEST_DIR_YES',
-        'TEST_FILE_YES',
+        'TEST_NO_FILE',
+        'TEST_SYM_RIGHT_FILE',
+        'TEST_SYM_RIGHT_DIR',
+        'TEST_SYM_WRONG_FILE',
+        'TEST_DIR_FILE',
+        'TEST_FILE_FILE',
         'TEST_NO_NO',
         'TEST_SYM_NO',
         'TEST_DIR_NO',
@@ -132,7 +191,8 @@ def test_pathlinker(test_name, run_script_lambda, test_result_function):
     shutil.copyfile(SETTINGS_FILE, SETTINGS_FILE_TEST)
 
     # Add test symlink
-    os.symlink(os.path.join(DESTINATION_DIR_TEST, 'TEST_SYM_RIGHT_YES'), os.path.join(ORIGINAL_DIR_TEST, 'TEST_SYM_RIGHT_YES'))
+    os.symlink(os.path.join(DESTINATION_DIR_TEST, 'TEST_SYM_RIGHT_FILE'), os.path.join(ORIGINAL_DIR_TEST, 'TEST_SYM_RIGHT_FILE'))
+    os.symlink(os.path.join(DESTINATION_DIR_TEST, 'TEST_SYM_RIGHT_DIR'), os.path.join(ORIGINAL_DIR_TEST, 'TEST_SYM_RIGHT_DIR'))
 
     # Setup pathlink.json settings
     with open(SETTINGS_FILE_TEST, 'r') as fp:
@@ -154,10 +214,18 @@ def test_pathlinker(test_name, run_script_lambda, test_result_function):
     shutil.rmtree(DESTINATION_DIR_TEST)
     os.remove(SETTINGS_FILE_TEST)
 
-test_pathlinker('TEST 1 (execute_linking=True)', 
-    lambda settings_file: pathlinker.pathlink(settings_file, execute_linking=True, automatic_yes=True),
+test_pathlinker('TEST 1 (mode="link" execute_linking=True)', 
+    lambda settings_file: pathlinker.pathlink(settings_file, mode='link', execute_linking=True, automatic_yes=True),
     test_result_everything_possible_linked)
 
-test_pathlinker('TEST 2 (execute_linking=False)', 
-    lambda settings_file: pathlinker.pathlink(settings_file, execute_linking=False),
+test_pathlinker('TEST 2 (mode="link" execute_linking=False)', 
+    lambda settings_file: pathlinker.pathlink(settings_file, mode='link', execute_linking=False),
+    test_result_nothing_gets_changed)
+
+test_pathlinker('TEST 3 (mode="unlink" execute_linking=True)', 
+    lambda settings_file: pathlinker.pathlink(settings_file, mode='unlink', execute_linking=True, automatic_yes=True),
+    test_result_unlink)
+
+test_pathlinker('TEST 4 (mode="unlink" execute_linking=False)', 
+    lambda settings_file: pathlinker.pathlink(settings_file, mode='unlink', execute_linking=False),
     test_result_nothing_gets_changed)

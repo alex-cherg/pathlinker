@@ -1,10 +1,11 @@
 {
     "tracked_paths": [
-        "TEST_NO_YES", 
-        "TEST_SYM_RIGHT_YES", 
-        "TEST_SYM_WRONG_YES", 
-        "TEST_DIR_YES", 
-        "TEST_FILE_YES", 
+        "TEST_NO_FILE", 
+        "TEST_SYM_RIGHT_FILE",
+        "TEST_SYM_RIGHT_DIR",
+        "TEST_SYM_WRONG_FILE", 
+        "TEST_DIR_FILE", 
+        "TEST_FILE_FILE", 
         "TEST_NO_NO", 
         "TEST_SYM_NO", 
         "TEST_DIR_NO", 
