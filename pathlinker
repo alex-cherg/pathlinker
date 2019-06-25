@@ -35,7 +35,7 @@ def pathlink(settings_path, execute_linking=True, automatic_yes=False):
     assert type(tracked_paths) is list, "tracked_paths is not a list"
     assert tracked_paths, "tracked_paths is empty"
     assert isinstance(original_dir, str) and os.path.isdir(original_dir), "original_dir is not a directory"
-    assert isinstance(original_dir, str) and os.path.isdir(destination_dir), "destination_dir is not a directory"
+    assert isinstance(destination_dir, str) and os.path.isdir(destination_dir), "destination_dir is not a directory"
 
     for tracked_path in tracked_paths:
 
