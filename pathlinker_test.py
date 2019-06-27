@@ -286,42 +286,42 @@ def test_pathlinker(test_name, run_script_lambda, test_result_function_dict):
     os.remove(SETTINGS_FILE_TEST)
 
 test_pathlinker('TEST 1 (mode="link" settings_id="*" execute_linking=True)', 
-    lambda settings_file: pathlinker.pathlink(settings_file, mode='link', settings_id='*', execute_linking=True, automatic_yes=True),
+    lambda settings_file: pathlinker.pathlink(settings_file, mode='link', settings_id='*', execute_linking=True, automatic_yes=True, silent=True),
     {
         "test_settings_id_1" : test_result_everything_possible_linked,
         "test_settings_id_2" : test_result_everything_possible_linked    
     })
 
 test_pathlinker('TEST 2 (mode="link" settings_id="test_settings_id_1" execute_linking=True)', 
-    lambda settings_file: pathlinker.pathlink(settings_file, mode='link', settings_id='test_settings_id_1', execute_linking=True, automatic_yes=True),
+    lambda settings_file: pathlinker.pathlink(settings_file, mode='link', settings_id='test_settings_id_1', execute_linking=True, automatic_yes=True, silent=True),
     {
         "test_settings_id_1" : test_result_everything_possible_linked,
         "test_settings_id_2" : test_result_nothing_gets_changed
     })
 
 test_pathlinker('TEST 3 (mode="link" settings_id="*" execute_linking=False)', 
-    lambda settings_file: pathlinker.pathlink(settings_file, mode='link', settings_id='*', execute_linking=False),
+    lambda settings_file: pathlinker.pathlink(settings_file, mode='link', settings_id='*', execute_linking=False, silent=True),
     {
         "test_settings_id_1" : test_result_nothing_gets_changed,
         "test_settings_id_2" : test_result_nothing_gets_changed    
     })
 
 test_pathlinker('TEST 4 (mode="unlink" settings_id="*" execute_linking=True)', 
-    lambda settings_file: pathlinker.pathlink(settings_file, mode='unlink', settings_id='*', execute_linking=True, automatic_yes=True),
+    lambda settings_file: pathlinker.pathlink(settings_file, mode='unlink', settings_id='*', execute_linking=True, automatic_yes=True, silent=True),
     {
         "test_settings_id_1" : test_result_everything_possible_unlinked,
         "test_settings_id_2" : test_result_everything_possible_unlinked
     })
 
 test_pathlinker('TEST 5 (mode="unlink" settings_id="test_settings_id_2" execute_linking=True)', 
-    lambda settings_file: pathlinker.pathlink(settings_file, mode='unlink', settings_id='test_settings_id_2', execute_linking=True, automatic_yes=True),
+    lambda settings_file: pathlinker.pathlink(settings_file, mode='unlink', settings_id='test_settings_id_2', execute_linking=True, automatic_yes=True, silent=True),
     {
         "test_settings_id_1" : test_result_nothing_gets_changed,
         "test_settings_id_2" : test_result_everything_possible_unlinked
     })
 
 test_pathlinker('TEST 6 (mode="unlink" settings_id="*" execute_linking=False)', 
-    lambda settings_file: pathlinker.pathlink(settings_file, mode='unlink', settings_id='*', execute_linking=False),
+    lambda settings_file: pathlinker.pathlink(settings_file, mode='unlink', settings_id='*', execute_linking=False, silent=True),
     {
         "test_settings_id_1" : test_result_nothing_gets_changed,
         "test_settings_id_2" : test_result_nothing_gets_changed

@@ -4,6 +4,7 @@ import os
 import shutil
 import json
 import argparse
+import logging
 
 # Helper functions
 def prompt_yes_no(msg, automatic_yes=False, ask_twice=False):
@@ -28,7 +29,7 @@ def pathlink_link(original_dir, destination_dir, tracked_paths, execute_linking,
         original_path = os.path.join(original_dir, tracked_path)
         destination_path = os.path.join(destination_dir, tracked_path)
 
-        print(f"### Processing dir {tracked_path} ###")
+        logging.info(f'--- processing path: {tracked_path}')
 
         if os.path.exists(destination_path):
             if not os.path.exists(original_path) and not os.path.islink(original_path):
@@ -36,7 +37,7 @@ def pathlink_link(original_dir, destination_dir, tracked_paths, execute_linking,
                     os.symlink(destination_path, original_path)
             elif os.path.islink(original_path):
                 if os.readlink(original_path) == destination_path:
-                    print(f"original_dir: Symbolic link {original_path} already points to correct location")
+                    logging.info(f'original_dir: Symbolic link {original_path} already points to correct location')
                 else:
                     if execute_linking and prompt_yes_no(f"original_dir: Symbolic link {original_path} points to other location: {os.readlink(original_path)}. Do you want to overwrite it?"
                             , automatic_yes=automatic_yes, ask_twice=True):
@@ -54,9 +55,9 @@ def pathlink_link(original_dir, destination_dir, tracked_paths, execute_linking,
                     os.symlink(destination_path, original_path)
         else: # backup path doesn't exist
             if not os.path.exists(original_path) and not os.path.islink(original_path):
-                print("original and destination paths don't exist.")
+                logging.info("original and destination paths don't exist.")
             elif os.path.islink(original_path):
-                print("original path is a link. no destination path.")
+                logging.info("original path is a link. no destination path.")
             else: # original path is a file/dir 
                 if execute_linking and prompt_yes_no("original_dir: File/folder exists. Do you want to move it to destination and link it?", automatic_yes=automatic_yes):
                     # Move original to backup location
@@ -65,7 +66,7 @@ def pathlink_link(original_dir, destination_dir, tracked_paths, execute_linking,
                     # Create symlink
                     os.symlink(destination_path, original_path)
                 else:
-                    print("Ok. DIY")
+                    logging.info("Ok. DIY")
 
 def pathlink_unlink(original_dir, destination_dir, tracked_paths, execute_linking, automatic_yes):
 
@@ -74,7 +75,7 @@ def pathlink_unlink(original_dir, destination_dir, tracked_paths, execute_linkin
         original_path = os.path.join(original_dir, tracked_path)
         destination_path = os.path.join(destination_dir, tracked_path)
 
-        print(f"### Processing dir {tracked_path} ###")
+        logging.info(f'--- processing path: {tracked_path}')
 
         if (os.path.islink(original_path) 
             and os.readlink(original_path) == destination_path
@@ -83,11 +84,11 @@ def pathlink_unlink(original_dir, destination_dir, tracked_paths, execute_linkin
                 os.unlink(original_path)
                 shutil.move(destination_path, original_path)
         else:
-            print('Not a proper link. DIY')
+            logging.info('Not a proper link. DIY')
 
 def pathlink_single_folder(settings_id, settings_dict, mode, execute_linking, automatic_yes):
 
-    print(f'### Processing settings_id: {settings_id}')
+    logging.info(f'### processing settings_id: {settings_id}')
 
     try:
         tracked_paths = settings_dict['tracked_paths']
@@ -108,7 +109,13 @@ def pathlink_single_folder(settings_id, settings_dict, mode, execute_linking, au
         pathlink_unlink(original_dir, destination_dir, tracked_paths, execute_linking, automatic_yes)
 
 
-def pathlink(settings_json_path, mode='link', settings_id='*', execute_linking=True, automatic_yes=False):
+def pathlink(settings_json_path, mode='link', settings_id='*', execute_linking=True, automatic_yes=False, silent=False):
+
+    logging.basicConfig(level=(logging.WARNING if silent else logging.INFO),
+        format='%(message)s')
+
+    logging.info(f'mode = {mode}, settings_id = {settings_id}')
+    logging.info(f'settings_json_path = {settings_json_path}')
 
     assert type(settings_json_path) is str
     assert type(mode) is str
