@@ -85,30 +85,57 @@ def pathlink_unlink(original_dir, destination_dir, tracked_paths, execute_linkin
         else:
             print('Not a proper link. DIY')
 
+def pathlink_single_folder(settings_id, settings_dict, mode, execute_linking, automatic_yes):
 
-def pathlink(settings_path, mode='link', execute_linking=True, automatic_yes=False):
+    print(f'### Processing settings_id: {settings_id}')
 
-    assert type(execute_linking) is bool
-    assert type(automatic_yes) is bool
-    assert type(mode) is str
+    try:
+        tracked_paths = settings_dict['tracked_paths']
+        original_dir = settings_dict['original_dir']
+        destination_dir = settings_dict['destination_dir']
+    except:
+        raise Exception('error: settings json should have fields: tracked_paths, original_dir, destination_dir')
 
-    with open(settings_path, 'r') as f:
-        settings = json.load(f)
-
-    tracked_paths = settings['tracked_paths']
-    original_dir = settings['original_dir']
-    destination_dir = settings['destination_dir']
-
-    assert type(tracked_paths) is list, "tracked_paths is not a list"
-    assert tracked_paths, "tracked_paths is empty"
-    assert isinstance(original_dir, str) and os.path.isdir(original_dir), "original_dir is not a directory"
-    assert isinstance(destination_dir, str) and os.path.isdir(destination_dir), "destination_dir is not a directory"
-    assert mode == 'link' or mode == 'unlink', f'invalid mode: {mode}'
+    assert type(tracked_paths) is list, "error: tracked_paths is not a list"
+    # assert tracked_paths, "error: tracked_paths should not be empty"
+    assert isinstance(original_dir, str) and os.path.isdir(original_dir), "error: original_dir is not a directory"
+    assert isinstance(destination_dir, str) and os.path.isdir(destination_dir), "error: destination_dir is not a directory"
+    assert mode == 'link' or mode == 'unlink', f'error: invalid mode: {mode}'
 
     if mode == 'link':
         pathlink_link(original_dir, destination_dir, tracked_paths, execute_linking, automatic_yes)
     elif mode == 'unlink':
         pathlink_unlink(original_dir, destination_dir, tracked_paths, execute_linking, automatic_yes)
+
+
+def pathlink(settings_json_path, mode='link', settings_id='*', execute_linking=True, automatic_yes=False):
+
+    assert type(settings_json_path) is str
+    assert type(mode) is str
+    assert type(settings_id) is str
+    assert type(execute_linking) is bool
+    assert type(automatic_yes) is bool
+
+    assert os.path.isfile(settings_json_path), 'error: settings json should be a json file'
+    with open(settings_json_path, 'r') as f:
+        try:
+            settings = json.load(f)
+        except:
+            raise Exception('error: settings json should be a json file')
+
+    assert type(settings) is dict, 'error: settings json should be a dictionary'
+
+    if settings_id == '*':
+        assert settings, 'error: settings json should be a non-empty dictionary'
+        for s_id, s_dict in settings.items():
+            pathlink_single_folder(s_id, s_dict, mode, execute_linking, automatic_yes)
+    else: # single id to link
+        try:
+            settings_dict = settings[settings_id]
+        except:
+            raise Exception('error: settings json should contain an entry for the chosen id')
+        
+        pathlink_single_folder(settings_id, settings_dict, mode, execute_linking, automatic_yes)
 
 
 if __name__ == "__main__":
@@ -121,15 +148,13 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--dry-run', action='store_true',
         help='just print info without any action')
     parser.add_argument('--id', type=str, default='*',
-        help='specifies which folders from config to link (default: * (all ids))')
+        help='specifies which settings id from config to link (default: * (all ids))')
     # default settings json file
-    SETTINGS_JSON = os.path.join(os.path.expanduser('~'), '.pathlinker.json')
-    parser.add_argument('-s', '--settings-json', type=str, default=SETTINGS_JSON,
+    SETTINGS_JSON_PATH = os.path.join(os.path.expanduser('~'), '.pathlinker.json')
+    parser.add_argument('-s', '--settings-json', type=str, default=SETTINGS_JSON_PATH,
         help='specifies file with settings (default: ~/.pathlinker.json)')
 
     args = parser.parse_args()
-
-    assert os.path.isfile(args.settings_json), '--settings-file should be a proper file'
-
-    pathlink(args.settings_json, mode=args.mode, execute_linking=not args.dry_run)
+    
+    pathlink(args.settings_json, mode=args.mode, settings_id=args.id, execute_linking=not args.dry_run)
 
