@@ -33,40 +33,51 @@ def pathlink_link(original_dir, destination_dir, tracked_paths, execute_linking,
 
         if os.path.exists(destination_path):
             if not os.path.exists(original_path) and not os.path.islink(original_path):
-                if execute_linking and prompt_yes_no("original_dir: Link doesn't exist. Do you want to add?", automatic_yes=automatic_yes):
+                logging.info('destination_dir: path exists')
+                logging.info('original_dir: corresponding link DOES NOT exist')
+                if execute_linking and prompt_yes_no("Do you want to add a link?", automatic_yes=automatic_yes):
                     os.symlink(destination_path, original_path)
             elif os.path.islink(original_path):
                 if os.readlink(original_path) == destination_path:
-                    logging.info(f'original_dir: Symbolic link {original_path} already points to correct location')
+                    logging.info('destination_dir: path exists')
+                    logging.info(f'original_dir: symbolic link already points to correct location')
                 else:
-                    if execute_linking and prompt_yes_no(f"original_dir: Symbolic link {original_path} points to other location: {os.readlink(original_path)}. Do you want to overwrite it?"
+                    logging.info('destination_dir: path exists')
+                    logging.info(f'original_dir: symbolic link points to WRONG location: {os.readlink(original_path)}')
+                    if execute_linking and prompt_yes_no("Do you want to overwrite it?"
                             , automatic_yes=automatic_yes, ask_twice=True):
                         os.unlink(original_path)
                         os.symlink(destination_path, original_path)
             elif os.path.isdir(original_path):
-                if execute_linking and prompt_yes_no(f"original_dir: Folder {original_path} already exists. Do you want to overwrite it?"
+                logging.info('destination_dir: path exists')
+                logging.info('original_dir: folder exists (NOT a symlink)')
+                if execute_linking and prompt_yes_no("Do you want to overwrite it?"
                         , automatic_yes=automatic_yes, ask_twice=True):
                     shutil.rmtree(original_path)
                     os.symlink(destination_path, original_path)
             else: # should be a file
-                if execute_linking and prompt_yes_no(f"original_dir: File {original_path} already exists. Do you want to overwrite it?"
+                logging.info('destination_dir: path exists')
+                logging.info('original_dir: file exists (NOT a symlink)')
+                if execute_linking and prompt_yes_no("Do you want to overwrite it?"
                         , automatic_yes=automatic_yes, ask_twice=True):
                     os.remove(original_path)
                     os.symlink(destination_path, original_path)
         else: # backup path doesn't exist
             if not os.path.exists(original_path) and not os.path.islink(original_path):
-                logging.info("original and destination paths don't exist.")
+                logging.info("original_dir: nothing")
+                logging.info("destination_dir: nothing")
             elif os.path.islink(original_path):
-                logging.info("original path is a link. no destination path.")
-            else: # original path is a file/dir 
-                if execute_linking and prompt_yes_no("original_dir: File/folder exists. Do you want to move it to destination and link it?", automatic_yes=automatic_yes):
+                logging.info("original_dir: symbolic link exists")
+                logging.info("destination_dir: nothing")
+            else: # original path is a file/dir
+                logging.info('original_dir: file/folder exists')
+                logging.info('destination_dir: nothing')
+                if execute_linking and prompt_yes_no("Do you want to move file/folder to destination_dir and add link to original_dir?", automatic_yes=automatic_yes):
                     # Move original to backup location
                     backup_path_folder = os.path.abspath(os.path.join(destination_path, '..'))
                     shutil.move(original_path, backup_path_folder)
                     # Create symlink
                     os.symlink(destination_path, original_path)
-                else:
-                    logging.info("Ok. DIY")
 
 def pathlink_unlink(original_dir, destination_dir, tracked_paths, execute_linking, automatic_yes):
 
@@ -111,7 +122,7 @@ def pathlink_single_folder(settings_id, settings_dict, mode, execute_linking, au
 
 def pathlink(settings_json_path, mode='link', settings_id='*', execute_linking=True, automatic_yes=False, silent=False):
 
-    logging.basicConfig(level=(logging.WARNING if silent else logging.INFO),
+    logging.basicConfig(level=(logging.WARNING if silent and automatic_yes else logging.INFO),
         format='%(message)s')
 
     logging.info(f'mode = {mode}, settings_id = {settings_id}')
