@@ -1,0 +1,9 @@
+{
+    "main" : {
+        "original_dir" : "/path/to/home/directory (for example)",
+        "destination_dir" : "/path/to/some/other/directory",
+        "tracked_paths" : [
+            ".pathlinker.json"
+        ]
+    }
+}
