@@ -2,6 +2,7 @@
 
 import os
 import shutil
+import pathlib
 import json
 import argparse
 import logging
@@ -75,6 +76,7 @@ def pathlink_link(original_dir, destination_dir, tracked_paths, execute_linking,
                 if execute_linking and prompt_yes_no("Do you want to move file/folder to destination_dir and add link to original_dir?", automatic_yes=automatic_yes):
                     # Move original to backup location
                     backup_path_folder = os.path.abspath(os.path.join(destination_path, '..'))
+                    pathlib.Path(backup_path_folder).mkdir(parents=True, exist_ok=True)
                     shutil.move(original_path, backup_path_folder)
                     # Create symlink
                     os.symlink(destination_path, original_path)
